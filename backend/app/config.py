@@ -1,7 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import SecretStr
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -34,6 +34,14 @@ class Settings(BaseSettings):
     # Claim cache TTL applies to memory and optional PostgreSQL; 0 disables both.
     claims_cache_ttl_seconds: float = 6 * 60 * 60
     claims_cache_max_entries: int = 256
+
+    # Admission limits for Azure-producing work, per client IP and process.
+    azure_rate_limit_enabled: bool = True
+    azure_normalization_per_minute: float = Field(default=6, gt=0, allow_inf_nan=False)
+    azure_normalization_burst: int = Field(default=6, gt=0)
+    azure_overview_per_minute: float = Field(default=2, gt=0, allow_inf_nan=False)
+    azure_overview_burst: int = Field(default=2, gt=0)
+    azure_rate_limit_max_clients: int = Field(default=10000, gt=0)
 
 
 @lru_cache
