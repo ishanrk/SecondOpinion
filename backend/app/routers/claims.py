@@ -4,6 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from app.models.claims import ClaimCandidates, ClaimRequest
+from app.routers.budgets import admission, RATE_LIMIT_RESPONSE
 from app.routers.crossref import CrossrefDep
 from app.routers.pubmed import PubMedDep
 from app.services.pmc import PMCClient
@@ -28,12 +29,13 @@ def get_claims_cache(request: Request) -> ClaimsCache:
 
 
 @router.post("", responses={
+    429: RATE_LIMIT_RESPONSE,
     422: {"description": "Invalid input or not one clear health claim"},
     502: {"description": "An evidence source returned an unusable response"},
     503: {"description": "Normalization or an evidence source is unavailable"},
 })
 async def search_claim(
-    request: ClaimRequest, pubmed: PubMedDep,
+    request: ClaimRequest, http_request: Request, pubmed: PubMedDep,
     cache: Annotated[ClaimsCache, Depends(get_claims_cache)],
     pmc: PMCDep, crossref: CrossrefDep,
     refresh: Annotated[bool, Query(description="Skip the cache and fetch fresh results.")] = False,
@@ -49,6 +51,7 @@ async def search_claim(
         result = await retrieve_candidates(
             request.claim, request.limit, pubmed, cache=cache, refresh=refresh, pmc=pmc,
             crossref=crossref,
+            before_normalize=admission(http_request, "normalization"),
         )
         return result.model_copy(update={"analysis_id": register_snapshot(result)})
     except ClaimNormalizationError as exc:
@@ -57,13 +60,14 @@ async def search_claim(
         raise HTTPException(status_code=503, detail=str(exc)) from None
 
 
-@router.post("/overview/{analysis_id}", response_model=ResearchOverview)
-async def research_overview(analysis_id: str) -> ResearchOverview:
+@router.post("/overview/{analysis_id}", response_model=ResearchOverview,
+             responses={429: RATE_LIMIT_RESPONSE})
+async def research_overview(analysis_id: str, http_request: Request) -> ResearchOverview:
     snapshot = snapshots.get(analysis_id)
     if snapshot is None:
         raise HTTPException(status_code=410, detail="Search snapshot expired. Refresh the search.")
     try:
         async with asyncio.timeout(240):
-            return await shared_overview(snapshot)
+            return await shared_overview(snapshot, before_start=admission(http_request, "overview"))
     except TimeoutError:
         raise HTTPException(status_code=503, detail="Overview took too long. Retry; your studies are still available.") from None

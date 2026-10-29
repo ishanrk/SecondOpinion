@@ -1,6 +1,7 @@
 """Connect claim normalization, PubMed search and PMC access checks."""
 
 import asyncio
+from collections.abc import Callable
 from dataclasses import dataclass
 import logging
 
@@ -117,11 +118,14 @@ async def retrieve_candidates(
     claim: str, limit: int, pubmed: PubMedClient,
     cache: ClaimsCache | None = None, refresh: bool = False,
     pmc: PMCClient | None = None, crossref: CrossrefClient | None = None,
+    before_normalize: Callable[[], None] | None = None,
 ) -> ClaimCandidates:
     """With `refresh`, skip cached values but still store the fresh result."""
     raw_key = canonical_claim_key(claim)
     normalized = None if cache is None or refresh else await cache.get_normalized(raw_key)
     if normalized is None:
+        if before_normalize is not None:
+            before_normalize()
         normalized = await run_in_threadpool(normalize_claim, claim)
         if cache is not None:
             await cache.put_normalized(raw_key, normalized)

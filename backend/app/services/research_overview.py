@@ -1,5 +1,6 @@
 """Two-stage, source-grounded reading of trusted search snapshots."""
 import asyncio
+from collections.abc import Callable
 import hashlib
 import json
 import logging
@@ -200,11 +201,20 @@ async def build_overview(result: ClaimCandidates) -> ResearchOverview:
         return overview
 
 
-async def shared_overview(result: ClaimCandidates) -> ResearchOverview:
+async def shared_overview(
+    result: ClaimCandidates, before_start: Callable[[], None] | None = None,
+) -> ResearchOverview:
     """Deduplicate concurrent automatic loads, including React development remounts."""
     key = cache_key(result)
+    cached = completed.get(key)
+    if cached is not None:
+        return cached.model_copy(update={"cached": True})
     task = inflight.get(key)
     if task is None:
+        # No await between admission and publishing the task: concurrent browser
+        # loads join the existing work without reserving a second budget token.
+        if before_start is not None:
+            before_start()
         async def bounded():
             async with asyncio.timeout(240):
                 return await build_overview(result)

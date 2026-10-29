@@ -12,6 +12,7 @@ from app import __version__
 from app.config import get_settings
 from app.routers import claims, crossref, examples, health, normalization, pubmed
 from app.services.claims import ClaimsCache
+from app.services.azure_budget import AzureBudgets, RateLimitExceeded
 from app.services.crossref import CrossrefClient
 from app.services.examples import initialize_examples
 from app.services.pubmed import PubMedClient
@@ -53,20 +54,30 @@ async def upstream_response_handler(request: Request, exc: Exception) -> JSONRes
     return JSONResponse(status_code=502, content={"detail": str(exc)})
 
 
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
+    return JSONResponse(
+        status_code=429, content={"detail": str(exc)},
+        headers={"Retry-After": str(exc.retry_after)},
+    )
+
+
 def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(title=settings.app_name, version=__version__, lifespan=lifespan)
     app.state.claims_cache = ClaimsCache.from_settings(settings)
+    app.state.azure_budgets = AzureBudgets(settings)
 
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["Retry-After"],
     )
 
     app.add_exception_handler(UpstreamUnavailableError, upstream_unavailable_handler)
     app.add_exception_handler(UpstreamResponseError, upstream_response_handler)
+    app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
 
     app.include_router(health.router, prefix="/api")
     app.include_router(pubmed.router, prefix="/api")
