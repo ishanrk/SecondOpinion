@@ -123,6 +123,31 @@ verdict examples use `DATABASE_URL` separately. The local Vite server proxies
 `/api` to port 8000. A hosted
 frontend needs `/api` routed to the backend and its origin in `CORS_ORIGINS`.
 
+## Azure admission limits
+
+`POST /api/claims`, `POST /api/claims/normalize`, and
+`POST /api/claims/overview/{analysis_id}` can return `429` with
+`{"detail":"Too many research requests. Please try again shortly."}` and a
+`Retry-After` header containing at least one whole second. The header is exposed
+to allowed CORS origins. Wait before retrying; retries are never automatic.
+
+Claim search and normalization share one per-client token bucket. Cache hits that
+avoid normalization do not count, including persistent-cache hits. A refresh
+skips the cache and counts. A new wording may count even if its eventual normalized
+query matches cached candidates. Invalid request bodies are rejected before
+admission. Failed Azure attempts still consume their reservation.
+
+Overview admission happens only for new work: completed results and joining an
+in-flight task are free, even when requested through a new snapshot token of the
+same result. Expired tokens still return 410 before admission. A new workflow
+reserves one overview token, including retries that reuse previous successful
+readings. A rejected workflow is not registered as in-flight and starts no model
+calls. Original candidates remain available to the client on overview failure.
+
+Defaults are six normalization admissions/minute (burst six), and two overview
+admissions/minute (burst two). Settings, proxy identity, bounded client storage,
+and the single-process limitation are documented in the README and `.env.example`.
+
 ## Automatic abstract overview
 
 `POST /api/claims` additionally returns `analysis_id`, an opaque, temporary identifier

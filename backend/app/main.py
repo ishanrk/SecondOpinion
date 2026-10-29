@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 from app import __version__
 from app.config import get_settings
 from app.routers import claims, crossref, examples, health, normalization, pubmed
+from app.routers.budgets import RATE_LIMIT_RESPONSE
 from app.services.claims import ClaimsCache
 from app.services.azure_budget import AzureBudgets, RateLimitExceeded
 from app.services.crossref import CrossrefClient
@@ -81,8 +82,8 @@ def create_app() -> FastAPI:
 
     app.include_router(health.router, prefix="/api")
     app.include_router(pubmed.router, prefix="/api")
-    app.include_router(normalization.router, prefix="/api")
-    app.include_router(claims.router, prefix="/api")
+    app.include_router(normalization.router, prefix="/api", responses={429: RATE_LIMIT_RESPONSE})
+    app.include_router(claims.router, prefix="/api", responses={429: RATE_LIMIT_RESPONSE})
     app.include_router(examples.router, prefix="/api")
     app.include_router(crossref.router, prefix="/api")
     return app

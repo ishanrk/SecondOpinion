@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from app.models.claims import ClaimCandidates, ClaimRequest
-from app.routers.budgets import admission, RATE_LIMIT_RESPONSE
+from app.routers.budgets import admission
 from app.routers.crossref import CrossrefDep
 from app.routers.pubmed import PubMedDep
 from app.services.pmc import PMCClient
@@ -29,7 +29,6 @@ def get_claims_cache(request: Request) -> ClaimsCache:
 
 
 @router.post("", responses={
-    429: RATE_LIMIT_RESPONSE,
     422: {"description": "Invalid input or not one clear health claim"},
     502: {"description": "An evidence source returned an unusable response"},
     503: {"description": "Normalization or an evidence source is unavailable"},
@@ -60,8 +59,7 @@ async def search_claim(
         raise HTTPException(status_code=503, detail=str(exc)) from None
 
 
-@router.post("/overview/{analysis_id}", response_model=ResearchOverview,
-             responses={429: RATE_LIMIT_RESPONSE})
+@router.post("/overview/{analysis_id}", response_model=ResearchOverview)
 async def research_overview(analysis_id: str, http_request: Request) -> ResearchOverview:
     snapshot = snapshots.get(analysis_id)
     if snapshot is None:

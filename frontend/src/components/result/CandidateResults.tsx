@@ -2,6 +2,7 @@ import { useEffect, useId, useState } from 'react'
 import { ClaimCandidates } from '../../types'
 import { Candidate, Observation, Overview, Reading, SearchResult } from './researchTypes'
 import ClipboardBoard from './ClipboardBoard'
+import { rateLimitMessage, retryAfterSeconds } from '../../httpErrors'
 import './CandidateResults.css'
 
 type StudyType = { label: string; letter: string; color: string }
@@ -107,6 +108,8 @@ function Results({ result, onRefresh }: { result: SearchResult; onRefresh: () =>
   const [error, setError] = useState('')
   const [expired, setExpired] = useState(false)
   const [attempt, setAttempt] = useState(0)
+  const [retryAt, setRetryAt] = useState(0)
+  const [retryWait, setRetryWait] = useState(0)
   const [filter, setFilter] = useState('all')
   const [picked, setPicked] = useState<Record<string, string>>({})
   const filterId = useId()
@@ -140,15 +143,32 @@ function Results({ result, onRefresh }: { result: SearchResult; onRefresh: () =>
   }
 
   useEffect(() => {
+    if (!retryAt) { setRetryWait(0); return }
+    const update = () => setRetryWait(Math.max(0, Math.ceil((retryAt - Date.now()) / 1000)))
+    update()
+    const timer = window.setInterval(update, 1000)
+    return () => window.clearInterval(timer)
+  }, [retryAt])
+
+  useEffect(() => {
     if (!result.analysis_id) { setPending(false); setError('Refresh the search to generate a research overview.'); setExpired(true); return }
     const controller = new AbortController()
     setPending(true)
     setError('')
+    setRetryAt(0)
     async function load() {
       try {
         const response = await fetch(`/api/claims/overview/${result.analysis_id}`, { method: 'POST', signal: controller.signal })
         if (response.status === 410) {
           if (!controller.signal.aborted) { setExpired(true); setError('This search session expired. Refresh the search for a new overview.') }
+          return
+        }
+        if (response.status === 429) {
+          if (!controller.signal.aborted) {
+            setError(rateLimitMessage(response, true))
+            const seconds = retryAfterSeconds(response)
+            if (seconds !== null) setRetryAt(Date.now() + seconds * 1000)
+          }
           return
         }
         if (!response.ok) throw new Error('Overview unavailable')
@@ -196,7 +216,7 @@ function Results({ result, onRefresh }: { result: SearchResult; onRefresh: () =>
           </div>}
           {!pending && overview && !overview.synthesis && <p>{overview.status === 'insufficient_information' ? 'The available abstracts do not provide enough usable information for an overview. This does not establish that no evidence exists.' : 'We couldn’t produce a verified overview. Available study explanations and original abstracts remain below.'}</p>}
           {!pending && overview?.status === 'partial' && <p className="research-notice">This overview covers only the successfully analyzed abstracts. Some papers could not be analyzed.</p>}
-          {!pending && (error || overview?.status === 'unavailable' || overview?.status === 'partial') && <button type="button" className="research-btn" onClick={expired ? onRefresh : () => setAttempt(value => value + 1)}>{expired ? 'Refresh search' : 'Retry overview'}</button>}
+          {!pending && (error || overview?.status === 'unavailable' || overview?.status === 'partial') && <button type="button" className="research-btn" disabled={retryWait > 0} onClick={expired ? onRefresh : () => setAttempt(value => value + 1)}>{expired ? 'Refresh search' : retryWait > 0 ? `Retry overview in ${retryWait}s` : 'Retry overview'}</button>}
           <p className="research-scope">AI-assisted reading of this search, not a verdict, a systematic review or a study-quality assessment. Citations link to the papers behind each observation.</p>
         </div>
       </section>

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 
-from app.routers.budgets import admission, RATE_LIMIT_RESPONSE
+from app.routers.budgets import admission
 
 from app.models.normalization import NormalizedClaim
 from app.services.normalization import (
@@ -22,7 +22,7 @@ class NormalizeRequest(BaseModel):
         return value.strip()
 
 
-@router.post("/normalize", responses={429: RATE_LIMIT_RESPONSE})
+@router.post("/normalize")
 def normalize(request: NormalizeRequest, http_request: Request) -> NormalizedClaim:
     admission(http_request, "normalization")()
     try:

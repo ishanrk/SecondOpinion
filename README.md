@@ -74,9 +74,54 @@ From `frontend/`:
 npm run build
 ```
 
+Run the frontend regression tests with `npm test`. They exercise error handling,
+manual retry delays, stale responses, and preserving studies when overviews fail.
+
 Backend tests use recorded or mocked service responses. The PostgreSQL
 integration tests require `TEST_DATABASE_URL` (examples) or
 `TEST_CACHE_DATABASE_URL` (claim cache).
+
+### Azure request limits
+
+The three Azure-producing routes have per-IP, per-process token budgets. Claim
+search and standalone normalization share a default allowance of six admissions
+per minute with a burst of six. Overview generation has two per minute with a
+burst of two. These are continuously refilled token buckets, not fixed windows.
+Configure the rates, bursts, client-table size, and enable flag in `.env.example`.
+
+Admission occurs after cache lookup. A cached normalization costs no token even
+when a new retrieval limit requires fresh PubMed work. A new wording that needs
+normalization, or a forced refresh, costs one normalization token. Completed
+overviews and joining an existing overview task are free; a new overview workflow
+costs one token for its bounded set of readings plus synthesis. Retried partial
+work costs another workflow token, while reusing successful readings. Failed
+Azure attempts are not refunded. This is admission control, not exact token or
+currency accounting, and it does not limit non-Azure routes.
+
+Rejections return `429` and `Retry-After` in whole seconds without starting the
+rejected work. The UI displays the delay; overview retry is disabled until it
+elapses, with no automatic retry. Existing papers remain readable. Search requests
+remain available so users can access previously cached results.
+
+The client identity is `request.client.host`, supplied by the ASGI server. The
+application never parses `X-Forwarded-For` or `Forwarded` itself. For direct local
+use, start Uvicorn with `--no-proxy-headers`. Behind a proxy, explicitly configure
+`--proxy-headers --forwarded-allow-ips=<trusted-proxy-IP>` and prevent direct access
+to the backend. Do not trust `*` on a publicly reachable backend. Without trusted
+forwarding, all users behind the proxy share its budget. Shared NATs similarly
+share an allowance; tune defaults for expected usage.
+
+Limits and overview caches are per process and reset on restart. Multiple workers
+or replicas multiply the effective allowance; use a shared limiter or an upstream
+gateway before scaling. Each budget retains at most 10,000 IP entries by default.
+Idle, fully refilled entries expire. At capacity, new identities receive 429 until
+an entry expires rather than evicting active clients and resetting their debt.
+`AZURE_RATE_LIMIT_ENABLED=false` is available for isolated tests/development.
+
+The tests use fresh disabled budgets by default; admission tests explicitly enable
+small budgets and use a fake monotonic clock. Windows tests select the event loop
+required by Psycopg async connections. Database integration tests need disposable
+databases: they truncate/drop their test tables.
 
 ## API
 

@@ -2,10 +2,13 @@ import { useRef, useState } from 'react'
 import { ClaimCandidates, VerdictData } from '../types'
 import { EXAMPLE_CLAIMS } from '../data/exampleClaims'
 import { hydrateExample } from '../data/hydrateExample'
+import { rateLimitMessage } from '../httpErrors'
 
 export type Status = 'idle' | 'loading' | 'error' | 'success'
 
-function requestError(status: number): string {
+function requestError(response: Response): string {
+  const status = response.status
+  if (status === 429) return rateLimitMessage(response)
   if (status === 422) return 'Enter one clear health claim of up to 2,000 characters.'
   if (status === 503) return 'An evidence service is unavailable. Try again shortly.'
   return 'Something went wrong on our end. Try again in a moment.'
@@ -62,7 +65,7 @@ export function useClaimChecker() {
       if (currentRequest !== requestId.current) return
 
       if (!res.ok) {
-        setErrorMessage(requestError(res.status))
+        setErrorMessage(requestError(res))
         setStatus('error')
         return
       }
