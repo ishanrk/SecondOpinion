@@ -3,7 +3,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
   push:
-    branches: [main]
+    branches: [main, test/81-browser-verification]
 
 permissions:
   contents: read
