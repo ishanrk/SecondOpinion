@@ -82,13 +82,13 @@ function StudyCard({ study, number, reading, pending }: { study: Candidate; numb
   const { article, metadata, access } = study
   const explanation = reading?.explanation
   const type = STUDY_TYPES[metadata.design] ?? STUDY_TYPES.unknown
-  return <article className="research-study" id={`study-${article.pmid}`} tabIndex={-1}>
+  return <article className="research-study" id={`study-${article.pmid}`} aria-labelledby={`study-title-${article.pmid}`} tabIndex={-1}>
     <div className="research-study__top"><span className="research-study__number">{String(number).padStart(2, '0')}</span>
       <div><div className="research-tags"><span>{type.label}</span><span>{article.year || 'Year unavailable'}</span>
         <span>{POPULATIONS[metadata.population ?? 'unknown'] ?? POPULATIONS.unknown}</span>
         {explanation && <span className={`research-relevance research-relevance--${explanation.relevance}`}>{RELEVANCE[explanation.relevance]}</span>}
       </div>
-      <h3><a href={article.url} target="_blank" rel="noreferrer">{article.title} <span aria-hidden="true">↗</span></a></h3>
+      <h3 id={`study-title-${article.pmid}`}><a href={article.url} target="_blank" rel="noreferrer">{article.title} <span aria-hidden="true">↗</span></a></h3>
       <p className="research-journal">{article.journal || 'Journal not reported'}</p></div>
     </div>
     {explanation ? <>
@@ -212,7 +212,8 @@ function Results({ result, onRefresh }: { result: SearchResult; onRefresh: () =>
         </div>
       </div>
 
-      <section className="vr__chat glass-card research-answer" aria-label="Quick read of the research" aria-busy={pending}>
+      <section className="vr__chat glass-card research-answer" aria-label="Quick read of the research" aria-busy={pending} aria-live="polite">
+        <h3 className="visually-hidden">Research overview</h3>
         <div className="vr__chat-body">
           <div className="research-answer__head"><p className="search__kicker">QUICK READ · FROM THE RETRIEVED STUDIES</p><span className="vr__chip">{basisLabel}</span></div>
           {pending && <div className="research-loading" role="status"><span className="research-spinner" />{result.pmc_only ? 'Reading the available full text and comparing it with your claim…' : 'Reading the abstracts and comparing them with your claim…'}<p>The papers are ready below. The overview can take a few minutes.</p></div>}

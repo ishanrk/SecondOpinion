@@ -534,13 +534,13 @@
   border-top: 1px solid rgba(255, 255, 255, 0.9);
 }
 
-.scoretip:hover .scoretip__card,
-.scoretip:focus-within .scoretip__card,
 .scoretip--open .scoretip__card {
   opacity: 1;
   visibility: visible;
   transform: none;
 }
+
+.scoretip__card[hidden] { display: none; }
 
 .scoretip__title {
   font-size: 14px;

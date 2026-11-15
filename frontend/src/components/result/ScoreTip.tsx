@@ -5,18 +5,22 @@ interface ScoreTipProps {
 }
 
 /**
- * The "?" next to the confidence score. Opens on hover, on keyboard focus,
- * or on tap (for phones). Escape or a tap outside closes it.
+ * The "?" next to the confidence score is a disclosure containing a link.
+ * Click or keyboard activation opens it; Escape or leaving it closes it.
  */
 export default function ScoreTip({ onHowItWorks }: ScoreTipProps) {
   const [pinned, setPinned] = useState(false)
   const id = useId()
   const wrap = useRef<HTMLSpanElement>(null)
+  const trigger = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (!pinned) return
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setPinned(false)
+      if (e.key === 'Escape') {
+        setPinned(false)
+        trigger.current?.focus()
+      }
     }
     function onClick(e: MouseEvent) {
       if (wrap.current && !wrap.current.contains(e.target as Node)) setPinned(false)
@@ -30,18 +34,22 @@ export default function ScoreTip({ onHowItWorks }: ScoreTipProps) {
   }, [pinned])
 
   return (
-    <span ref={wrap} className={pinned ? 'scoretip scoretip--open' : 'scoretip'}>
+    <span ref={wrap} className={pinned ? 'scoretip scoretip--open' : 'scoretip'}
+      onBlur={event => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setPinned(false)
+      }}>
       <button
+        ref={trigger}
         type="button"
         className="scoretip__btn"
         aria-label="How the score is calculated"
-        aria-describedby={id}
+        aria-controls={id}
         aria-expanded={pinned}
         onClick={() => setPinned((p) => !p)}
       >
         ?
       </button>
-      <span id={id} role="tooltip" className="scoretip__card">
+      <span id={id} role="region" aria-label="How this score works" hidden={!pinned} className="scoretip__card">
         <strong className="scoretip__title">How this score works</strong>
         <span className="scoretip__text">It reflects how strong the evidence behind the verdict is:</span>
         <span className="scoretip__list">

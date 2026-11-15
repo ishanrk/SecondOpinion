@@ -1,4 +1,5 @@
 import { CSSProperties, KeyboardEvent, ReactNode, useEffect, useId, useRef, useState } from 'react'
+import { nextTabIndex } from '../tabNavigation'
 
 /** Colours for one clipboard: tab pair, stamp ink, and the rgb used for the board's tinted edge. */
 export interface ClipboardTint {
@@ -55,9 +56,10 @@ export default function ClipboardBoard({
 
   // Arrow keys move between tabs, the standard tablist pattern
   function onKeyDown(e: KeyboardEvent<HTMLButtonElement>) {
-    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return
+    if (e.altKey || e.ctrlKey || e.metaKey) return
+    const next = nextTabIndex(e.key, activeIndex, tabs.length)
+    if (next === null) return
     e.preventDefault()
-    const next = (activeIndex + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length
     onSelect(tabs[next].id)
     document.getElementById(`${base}-tab-${next}`)?.focus()
   }
@@ -100,6 +102,7 @@ export default function ClipboardBoard({
             id={`${base}-panel`}
             role="tabpanel"
             aria-labelledby={`${base}-tab-${activeIndex}`}
+            tabIndex={0}
             className="referrals__sheet"
           >
             <div className="referrals__head">

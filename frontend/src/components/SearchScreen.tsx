@@ -57,7 +57,9 @@ export default function SearchScreen({
 
   // Bring the result into view when it arrives
   useEffect(() => {
-    if (showResult) resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    if (!showResult) return
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    resultRef.current?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
   }, [showResult, activeClaim])
 
   function handleSubmit(e: FormEvent) {
@@ -138,8 +140,12 @@ export default function SearchScreen({
         </div>
       </section>
 
-      <section className="search__bottom theme-light" ref={resultRef} aria-live="polite">
+      <p className="visually-hidden" role="status">
+        {showResult ? 'Research results are ready below.' : ''}
+      </p>
+      <section className="search__bottom theme-light" ref={resultRef} aria-label="Search results">
         <div className="search__bottom-inner">
+          {showResult && <h2 className="visually-hidden">Research results</h2>}
           {status === 'loading' && (
             <div className="search__status glass-card" role="status">
               <span className="search__spinner" aria-hidden="true" />

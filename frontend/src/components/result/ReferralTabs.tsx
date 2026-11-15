@@ -1,5 +1,6 @@
 import { KeyboardEvent, useId, useState } from 'react'
 import { Source } from '../../types'
+import { nextTabIndex } from '../tabNavigation'
 
 const TAB_TINTS = [
   { bg: '#0B1957', ink: '#ffffff' },
@@ -22,16 +23,20 @@ interface ReferralTabsProps {
 export default function ReferralTabs({ sources }: ReferralTabsProps) {
   const [active, setActive] = useState(0)
   const base = useId()
-  const current = sources[Math.min(active, sources.length - 1)]
+  const activeIndex = Math.max(0, Math.min(active, sources.length - 1))
+  const current = sources[activeIndex]
 
   // Arrow keys move between tabs, the standard tablist pattern
   function onKeyDown(e: KeyboardEvent<HTMLButtonElement>) {
-    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return
+    if (e.altKey || e.ctrlKey || e.metaKey) return
+    const next = nextTabIndex(e.key, activeIndex, sources.length)
+    if (next === null) return
     e.preventDefault()
-    const next = (active + (e.key === 'ArrowRight' ? 1 : -1) + sources.length) % sources.length
     setActive(next)
     document.getElementById(`${base}-tab-${next}`)?.focus()
   }
+
+  if (!current) return null
 
   return (
     <div className="referrals">
@@ -41,7 +46,7 @@ export default function ReferralTabs({ sources }: ReferralTabsProps) {
         <div className="referrals__tabs" role="tablist" aria-label="Sources">
           {sources.map((s, i) => {
             const tint = TAB_TINTS[i % TAB_TINTS.length]
-            const selected = i === active
+            const selected = i === activeIndex
             return (
               <button
                 key={s.url}
@@ -68,13 +73,14 @@ export default function ReferralTabs({ sources }: ReferralTabsProps) {
           <div
             id={`${base}-panel`}
             role="tabpanel"
-            aria-labelledby={`${base}-tab-${active}`}
+            aria-labelledby={`${base}-tab-${activeIndex}`}
+            tabIndex={0}
             className="referrals__sheet"
             key={current.url}
           >
             <div className="referrals__head">
               <span>
-                REFERRAL {active + 1} OF {sources.length}
+                REFERRAL {activeIndex + 1} OF {sources.length}
               </span>
               <span>FURTHER READING</span>
             </div>

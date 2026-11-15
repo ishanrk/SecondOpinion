@@ -76,7 +76,7 @@ export default function StudyTypeDemo({ onStatusChange }: DemoProps) {
   return (
     <div className="demo">
       <p className="demo__caption">1. What kind of study is it?</p>
-      <div className="grade__types">
+      <div className="grade__types" role="group" aria-label="Study type">
         {TYPES.map((t) => (
           <button
             key={t.id}
@@ -94,7 +94,7 @@ export default function StudyTypeDemo({ onStatusChange }: DemoProps) {
       </div>
 
       <p className="demo__caption">2. Anything else on the record?</p>
-      <div className="grade__toggles">
+      <div className="grade__toggles" role="group" aria-label="Publication flags">
         <label className="grade__toggle">
           <input type="checkbox" checked={animalsOnly} onChange={(e) => {
               setAnimalsOnly(e.target.checked)

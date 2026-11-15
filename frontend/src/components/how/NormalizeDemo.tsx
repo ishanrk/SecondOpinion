@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { KeyboardEvent, useEffect, useId, useState } from 'react'
+import { nextTabIndex } from '../tabNavigation'
 
 type Role = 'subject' | 'comparison' | 'outcome'
 
@@ -76,6 +77,7 @@ interface DemoProps {
 export default function NormalizeDemo({ onStatusChange }: DemoProps) {
   const [index, setIndex] = useState(0)
   const [done, setDone] = useState(false)
+  const base = useId()
 
   useEffect(() => {
     onStatusChange?.(done)
@@ -94,23 +96,37 @@ export default function NormalizeDemo({ onStatusChange }: DemoProps) {
     setRunId((n) => n + 1)
   }
 
+  function onTabKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
+    if (event.altKey || event.ctrlKey || event.metaKey) return
+    const next = nextTabIndex(event.key, index, EXAMPLES.length)
+    if (next === null) return
+    event.preventDefault()
+    pick(next)
+    document.getElementById(`${base}-tab-${next}`)?.focus()
+  }
+
   return (
     <div className="demo">
       <div className="demo__tabs" role="tablist" aria-label="Sample claims">
         {EXAMPLES.map((e, i) => (
           <button
             key={e.label}
+            id={`${base}-tab-${i}`}
             type="button"
             role="tab"
             aria-selected={i === index}
+            aria-controls={`${base}-panel`}
+            tabIndex={i === index ? 0 : -1}
             className="demo__tab"
             onClick={() => pick(i)}
+            onKeyDown={onTabKeyDown}
           >
             {e.label}
           </button>
         ))}
       </div>
 
+      <div id={`${base}-panel`} role="tabpanel" aria-labelledby={`${base}-tab-${index}`} tabIndex={0}>
       <p className="demo__caption">What someone types</p>
       <p className={`norm__messy ${done ? 'norm__messy--marked' : ''}`}>
         “
@@ -153,6 +169,7 @@ export default function NormalizeDemo({ onStatusChange }: DemoProps) {
           </button>
         </div>
       )}
+      </div>
     </div>
   )
 }
