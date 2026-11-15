@@ -20,7 +20,7 @@
   color: #0B1957;
   --text-strong: #0B1957;
   --text-body: #16233E;
-  --text-muted: #5A6B8C;
+  --text-muted: var(--ink-soft);
   --accent-text: #2F6690;
   --divider: rgba(11, 25, 87, 0.1);
   --card-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.18) 55%, rgba(255, 255, 255, 0.32) 100%);
@@ -126,6 +126,18 @@
 
 .search__capsule-input input::placeholder {
   color: var(--text-muted);
+  opacity: 1;
+}
+
+.search__capsule-input input:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 6px;
+  border-radius: 2px;
+}
+
+.search__capsule-btn:focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: -7px;
 }
 
 .search__capsule-seam {
@@ -174,8 +186,8 @@
 }
 
 .search__hand {
-  font-family: var(--font-hand);
-  font-weight: 400;
+  font-family: var(--font-sans);
+  font-weight: 600;
   font-size: 15px;
   line-height: 1.8;
   color: var(--accent-text);
@@ -447,7 +459,7 @@
 }
 
 .vr__capsule--supported .vr__capsule-bottom {
-  background: linear-gradient(160deg, #3d8ed6, #2a6cb8);
+  background: linear-gradient(160deg, #28689F, #205689);
 }
 
 .vr__capsule--unverified .vr__capsule-bottom {
@@ -635,7 +647,7 @@
   padding: 6px 12px;
   border-radius: 999px;
   background: #E5F6EC;
-  color: #2F8F5B;
+  color: var(--success);
 }
 
 /* Further reading: tabbed referral sheets on a clipboard */
@@ -690,7 +702,7 @@
   z-index: 2;
   display: flex;
   gap: 6px;
-  padding: 0 18px;
+  padding: 5px 18px 0;
   overflow-x: auto;
 }
 
@@ -701,7 +713,7 @@
   padding: 10px 18px 12px;
   font-size: 12.5px;
   font-weight: 700;
-  opacity: 0.85;
+  opacity: 1;
   transform: translateY(4px);
   transition: transform 0.15s ease, opacity 0.15s ease;
 }
@@ -717,6 +729,11 @@
   opacity: 1;
   transform: none;
   box-shadow: 0 -4px 10px rgba(11, 25, 87, 0.08);
+}
+
+.referrals__tab:focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: -4px;
 }
 
 .referrals__stack {
@@ -841,11 +858,10 @@
 }
 
 .referrals__hand {
-  font-family: var(--font-hand);
+  font-family: var(--font-sans);
   font-size: 14px;
   line-height: 2;
   color: #1B3B6F;
-  transform: rotate(-3deg);
 }
 
 .referrals__aside {

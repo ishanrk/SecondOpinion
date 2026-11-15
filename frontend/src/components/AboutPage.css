@@ -139,12 +139,11 @@
 .about__hand {
   display: inline-block;
   margin-top: 14px;
-  font-family: var(--font-hand);
-  font-weight: 400;
+  font-family: var(--font-sans);
+  font-weight: 700;
   font-size: 58px;
-  line-height: 1.5;
+  line-height: 1.15;
   color: var(--accent-text);
-  transform: rotate(-3deg);
 }
 
 .about__lede {

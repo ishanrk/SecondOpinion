@@ -15,11 +15,11 @@
   --cream: #F6E4C8;
   --paper: #FFF8EE;
   --ink: #16233E;
-  --ink-soft: #5A6B8C;
+  --ink-soft: #4B5B77;
   --border: #D9E6F2;
-  --success: #2F8F5B;
+  --success: #237248;
   --success-bg: #E5F6EC;
-  --warning: #B98900;
+  --warning: #805B00;
   --warning-bg: #FBF3DC;
   --danger: #B3402F;
   --danger-bg: #FBE9E6;
@@ -53,7 +53,7 @@
   );
 
   --font-sans: 'Comfortaa', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  /* "Doctor's handwriting": logo "Second", About headline, Rx signature */
+  /* Handwriting is reserved for the brand mark and decorative signature. */
   --font-hand: 'Homemade Apple', 'Segoe Script', cursive;
   --radius-sm: 8px;
   --radius-md: 14px;
@@ -65,8 +65,10 @@
 .page[data-theme='dark'] {
   color-scheme: dark;
   --text-strong: #FFF8EE;
-  --text-body: rgba(255, 248, 238, 0.84);
-  --text-muted: rgba(246, 228, 200, 0.68);
+  --text-body: #F1E8DA;
+  --text-muted: #E3D5BF;
+  --focus-ring: #9ECCFA;
+  --focus-halo: #060F27;
   --accent-text: #F6E4C8;
   --divider: rgba(246, 228, 200, 0.14);
   --headline-shadow: 0 2px 18px rgba(0, 0, 0, 0.35);
@@ -124,6 +126,8 @@
   --text-strong: var(--navy);
   --text-body: var(--ink);
   --text-muted: var(--ink-soft);
+  --focus-ring: #1B3B6F;
+  --focus-halo: #FFFFFF;
   --accent-text: var(--blue);
   --divider: rgba(11, 25, 87, 0.1);
   --headline-shadow: none;
@@ -271,12 +275,16 @@ input {
 }
 
 :focus-visible {
-  outline: 2px solid var(--blue-pale);
-  outline-offset: 2px;
+  outline: 3px solid var(--focus-ring, #1B3B6F);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px var(--focus-halo, #FFFFFF);
 }
 
-.page[data-theme='light'] :focus-visible {
-  outline-color: var(--blue);
+.clipboard__sheet,
+.referrals__sheet {
+  --focus-ring: #1B3B6F;
+  --focus-halo: #FFFFFF;
+  color-scheme: light;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -284,6 +292,7 @@ input {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

@@ -11,8 +11,8 @@
 
 .how__hand {
   display: inline-block;
-  font-family: var(--font-hand);
-  font-weight: 400;
+  font-family: var(--font-sans);
+  font-weight: 600;
   font-size: 17px;
   line-height: 1.8;
   color: var(--accent-text);
@@ -47,7 +47,6 @@
 
 .how__hand--lead {
   font-size: 24px;
-  transform: rotate(-2deg);
 }
 
 .how__subhead {
@@ -650,6 +649,7 @@
 
 .grade__toggles {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 18px;
 }
@@ -762,7 +762,7 @@
 }
 
 .retract__row--out .retract__source {
-  opacity: 0.55;
+  opacity: 1;
 }
 
 .retract__row--retracted .retract__title {
