@@ -118,6 +118,9 @@ Home, How it works and About have shareable URLs with browser history, page
 titles and keyboard focus management. See [navigation](docs/navigation.md)
 for direct-load hosting requirements and the browser regression suite.
 
+See [accessibility](docs/accessibility.md) for keyboard control behavior, contrast
+changes, automated audit coverage, and the manual verification still required.
+
 To check the production build locally, run `npm run build` followed by
 `npm run preview`. Preview serves the built app with the security policy in
 `frontend/securityHeaders.ts` and proxies `/api` to port 8000. The development

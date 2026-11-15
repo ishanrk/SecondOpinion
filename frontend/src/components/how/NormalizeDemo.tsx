@@ -142,11 +142,7 @@ export default function NormalizeDemo({ onStatusChange }: DemoProps) {
         ”
       </p>
 
-      {!done ? (
-        <button type="button" className="demo__run" onClick={run}>
-          Normalize it
-        </button>
-      ) : (
+      {done && (
         <div key={runId} className="norm__result" aria-live="polite">
           <div className="norm__parts">
             {(Object.keys(ROLE_LABEL) as Role[]).map((role, i) => (
@@ -164,11 +160,11 @@ export default function NormalizeDemo({ onStatusChange }: DemoProps) {
             <span className="demo__caption">What we search for</span>
             <p>{ex.normalized}</p>
           </div>
-          <button type="button" className="demo__ghost" onClick={() => setDone(false)}>
-            ↺ Reset
-          </button>
         </div>
       )}
+      <button type="button" className={done ? 'demo__ghost' : 'demo__run'} onClick={() => done ? setDone(false) : run()}>
+        {done ? '↺ Reset' : 'Normalize it'}
+      </button>
       </div>
     </div>
   )

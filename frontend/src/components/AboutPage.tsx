@@ -20,7 +20,7 @@ function Avatar({ member }: { member: TeamMember }) {
   const src = photoFor(member.photo)
   return (
     <div className="about__avatar">
-      {src ? <img src={src} alt={member.name} /> : <span aria-label={member.name}>{member.initials}</span>}
+      {src ? <img src={src} alt={member.name} /> : <span role="img" aria-label={member.name}>{member.initials}</span>}
     </div>
   )
 }
@@ -48,7 +48,7 @@ function GitHubIcon() {
 /** The paper prescription pad next to the headline. Same in both themes. */
 function RxPad() {
   return (
-    <div className="rx" aria-label="What Second Opinion does, written as a prescription">
+    <div className="rx" role="group" aria-label="What Second Opinion does, written as a prescription">
       <div className="rx__head">
         <span className="rx__brand">SECOND OPINION</span>
         <span className="rx__est">Est. 2026 · Gainesville, FL</span>
@@ -86,7 +86,7 @@ function RxPad() {
 /** Brushed-foil blister strip holding the three verdict pills. */
 function BlisterStrip() {
   return (
-    <div className="blister" aria-label="Planned verdict categories">
+    <div className="blister" role="group" aria-label="Planned verdict categories">
       <span className="blister__title">PLANNED VERDICT CATEGORIES</span>
       <div className="blister__row">
         {VERDICTS.map((v) => (

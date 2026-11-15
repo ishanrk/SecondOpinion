@@ -82,24 +82,19 @@ export default function RetractionDemo({ onStatusChange }: DemoProps) {
         })}
       </ul>
 
-      <div className="retract__footer" aria-live="polite">
-        {finished ? (
-          <>
-            <p className="retract__summary">
+      <div className="retract__footer">
+        <p className="retract__summary" role="status">
+          {finished ? <>
               <strong>
                 {kept} of {SOURCES.length}
               </strong>{' '}
               sample sources pass this integrity screen.
-            </p>
-            <button type="button" className="demo__ghost" onClick={() => setCursor(-1)}>
-              ↺ Reset
-            </button>
-          </>
-        ) : (
-          <button type="button" className="demo__run" onClick={() => setCursor(0)} disabled={running}>
-            {running ? 'Checking notices…' : 'Run retraction check'}
-          </button>
-        )}
+          </> : running ? 'Checking notices…' : ''}
+        </p>
+        <button type="button" className={finished ? 'demo__ghost' : 'demo__run'} aria-disabled={running}
+          onClick={() => { if (!running) setCursor(finished ? -1 : 0) }}>
+          {finished ? '↺ Reset' : 'Run retraction check'}
+        </button>
       </div>
     </div>
   )
